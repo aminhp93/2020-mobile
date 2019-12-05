@@ -13,6 +13,7 @@ import * as MediaLibrary from "expo-media-library";
 import * as Permissions from "expo-permissions";
 import * as ImagePicker from "expo-image-picker";
 import Constants from "expo-constants";
+import TaskItemComponent from "./TaskItemComponent";
 
 export default class Task extends React.Component {
   constructor(props) {
@@ -20,10 +21,12 @@ export default class Task extends React.Component {
     this.state = {
       listTasks: [
         {
+          id: 1,
           title: "Task 1",
           content: "App Crud Feature"
         },
         {
+          id: 2,
           title: "Task 2",
           content: "Set timer and alert for each task"
         }
@@ -35,12 +38,17 @@ export default class Task extends React.Component {
   }
 
   openPhotos = () => {
-    // ImagePicker.openPicker({
-    //   multiple: true
-    // }).then(images => {
-    //   console.log(images);
-    // });
-    // <CameraRollPicker callback={this.getSelectedImages} />;
+    const options = {
+      first: 5
+    };
+    MediaLibrary.getAssetsAsync(options).then(response => {
+      this.setState({
+        listImages: response.assets
+      });
+      console.log(response);
+    });
+
+    console.log("hi");
   };
 
   getSelectedImages = (images, current) => {
@@ -58,13 +66,17 @@ export default class Task extends React.Component {
   handleLongPress = () => {
     ActionSheetIOS.showActionSheetWithOptions(
       {
-        options: ["Cancel", "Remove"],
+        options: ["Cancel", "Start"],
         destructiveButtonIndex: 1,
         cancelButtonIndex: 0
       },
       buttonIndex => {
         if (buttonIndex === 1) {
-          /* destructive action */
+          // start
+          this.setState({
+            showSlider: true,
+          })
+
         }
       }
     );
@@ -72,17 +84,7 @@ export default class Task extends React.Component {
 
   componentDidMount() {
     this.getPermissionAsync();
-    const options = {
-      first: 5
-    };
-    MediaLibrary.getAssetsAsync(options).then(response => {
-      this.setState({
-        listImages: response.assets
-      });
-      console.log(response);
-    });
-
-    console.log("hi");
+    
   }
 
   getPermissionAsync = async () => {
@@ -109,50 +111,38 @@ export default class Task extends React.Component {
     }
   };
 
-  render() {
-    const swipeoutBtns = [
-      {
-        text: "Button"
-      }
-    ];
+  handleDoneTask = (id) => {
+    const index = this.state.listTasks.findIndex(item => item.id === id);
+    this.setState({
+      listTasks: this.state.listTasks.splice(index, 1)
+    })
+  }
 
+  render() {
+  
     const { listTasks, image, listImages } = this.state;
     return (
-      <ScrollView>
-        {listImages.map(item => {
-          console.log(item);
-          return (
-            <Image
-              source={{ uri: item.uri }}
-              style={{ width: 200, height: 200 }}
-            />
-          );
-        })}
-      </ScrollView>
-      // <ScrollView style={{ marginTop: 30, width: "100%" }}>
-      //   {listTasks.map((item, index) => {
+      // <ScrollView>
+      //   {listImages.map(item => {
+      //     console.log(item);
       //     return (
-      //       <Swipeout right={swipeoutBtns}>
-      //         <TouchableOpacity
-      //           key={index}
-      //           onPress={() => this.handleLongPress()}
-      //         >
-      //           <View key={index} style={{ flex: 1, height: 50 }}>
-      //             <View>
-      //               <Text>{item.title}</Text>
-      //             </View>
-      //             <View>
-      //               <Text>{item.content}</Text>
-      //             </View>
-      //           </View>
-      //         </TouchableOpacity>
-      //       </Swipeout>
+      //       <Image
+      //         source={{ uri: item.uri }}
+      //         style={{ width: 200, height: 200 }}
+      //       />
       //     );
       //   })}
-      //   <TouchableOpacity onPress={() => this.openPhotos()}>
-      //     <Text>Open photos</Text>
-      //   </TouchableOpacity>
       // </ScrollView>
+      <ScrollView style={{ marginTop: 30, width: "100%" }}>
+        {listTasks.map((item, index) => {
+          return (
+            <TaskItemComponent data={item} handleDoneTask={this.handleDoneTask}/>
+          );
+        })}
+        <TouchableOpacity onPress={() => this.openPhotos()}>
+          <Text>Open photos</Text>
+        </TouchableOpacity>
+      </ScrollView>
       // <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
       //   <Button
       //     title="Pick an image from camera roll"
