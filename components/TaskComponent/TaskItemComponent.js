@@ -11,6 +11,9 @@ import {
     Image,
     Slider,
     Alert,
+    Vibration,
+    Modal,
+    TouchableHighlight,
   } from "react-native";
 
 export default class TaskItemComponent extends React.Component {
@@ -18,33 +21,45 @@ export default class TaskItemComponent extends React.Component {
         super(props);
         this.state = {
             showSlider: false,
+            setEmpty: false,
         }
     }
 
     handleLongPress = () => {
+        
+          
         this.setState({
-            showSlider: true,
+            // showSlider: true,
             valueSlider: 0
         }, () => {
-            setInterval(() => {
+            Alert.alert(
+                null,
+                this.state.valueSlider,
+                [
+                    {
+                        text: 'Cancel',
+                        onPress: () => console.log('Cancel Pressed'),
+                        style: 'cancel',
+                    },
+                    { 
+                        title: this.state.valueSlider > 10 ? 'You reach the goal' : 'Title',
+                        text: 'String(this.state.valueSlider)',
+                        onPress: () => {
+                            this.props.handleDoneTask(this.props.data.id) 
+                        }
+                    },
+                ],
+                { cancelable: false }
+            );
+            this.interval = setInterval(() => {
                 this.setState({
                     valueSlider: this.state.valueSlider + 1
                 }, () => {
                     if (this.state.valueSlider === 10) {
-                        Alert.alert(
-                            null,
-                            null,
-                            [
-                              {
-                                text: 'Cancel',
-                                onPress: () => console.log('Cancel Pressed'),
-                                style: 'cancel',
-                              },
-                              { text: 'You reached the goal', onPress: () => this.props.handleDoneTask(this.props.id) },
-                            ],
-                            { cancelable: false }
-                          );
-                          
+                        Vibration.vibrate()
+                        this.setState({
+                            reachedGoal: true
+                        })
                     }
                 })
             }, 1000)
@@ -58,6 +73,7 @@ export default class TaskItemComponent extends React.Component {
               text: "Button"
             }
           ];
+        if (this.state.setEmpty) return null
         return (
             <Swipeout right={swipeoutBtns}>
                 <TouchableOpacity
@@ -66,23 +82,46 @@ export default class TaskItemComponent extends React.Component {
                 >
                     {
                         this.state.showSlider
-                            ?   <Slider
-                                style={{width: 200, height: 40}}
-                                minimumValue={0}
-                                maximumValue={10}
-                                minimumTrackTintColor="#FFFFFF"
-                                maximumTrackTintColor="#000000"
-                                value={this.state.valueSlider}
-                            />
+                            ?  (
+                                <View>
+                                    <View>
+                                        <Text>
+                                            {this.state.valueSlider}
+                                        </Text>
+                                    </View>
+                                    {
+                                        this.state.valueSlider > 10
+                                        ? <Button 
+                                            title={'STOP'}
+                                            onPress={() => {
+                                                console.log(74)
+                                                clearInterval(this.interval)
+                                                this.setState({
+                                                    setEmpty: true
+                                                })
+                                            }}/>
+                                        : null
+                                    }
+                                    
+                                </View>
+                            )
+                            // <Slider
+                            //     style={{width: 200, height: 40}}
+                            //     minimumValue={0}
+                            //     maximumValue={10}
+                            //     minimumTrackTintColor="#FFFFFF"
+                            //     maximumTrackTintColor="#000000"
+                            //     value={this.state.valueSlider}
+                            // />
                             : (
                                 <View style={{ flex: 1, height: 50 }}>
-                        <View>
-                        <Text>{data.title}</Text>
-                        </View>
-                        <View>
-                        <Text>{data.content}</Text>
-                        </View>
-                    </View>
+                                    <View>
+                                    <Text>{data.title || 'Title'}</Text>
+                                    </View>
+                                    <View>
+                                    <Text>{data.content || 'Content'}</Text>
+                                    </View>
+                                </View>
                             )
                     }
                     
