@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Modal,
-  TouchableHighlight,
+  TouchableHighlight
 } from "react-native";
 import Swipeout from "react-native-swipeout";
 import * as MediaLibrary from "expo-media-library";
@@ -18,9 +18,8 @@ import * as Permissions from "expo-permissions";
 import * as ImagePicker from "expo-image-picker";
 import Constants from "expo-constants";
 import TaskItemComponent from "./TaskItemComponent";
-import * as Google from 'expo-google-app-auth';
-import axios from 'axios';
-
+import * as Google from "expo-google-app-auth";
+import axios from "axios";
 
 export default class Task extends React.Component {
   constructor(props) {
@@ -81,16 +80,15 @@ export default class Task extends React.Component {
         if (buttonIndex === 1) {
           // start
           this.setState({
-            showSlider: true,
-          })
-
+            showSlider: true
+          });
         }
       }
     );
   };
 
   setModalVisible(visible) {
-    this.setState({modalVisible: visible});
+    this.setState({ modalVisible: visible });
   }
 
   componentDidMount() {
@@ -102,44 +100,50 @@ export default class Task extends React.Component {
   getListTasks = () => {
     this.setState({
       isLoading: true
-    })
-    axios.get('http://api-2019.herokuapp.com/posts/')
+    });
+    // axios.get('http://api-2019.herokuapp.com/posts/')
+    axios
+      .get("http://localhost:8001/googlesheet/")
       .then(response => {
-        console.log(123)
+        console.log(123);
         let mappedListTasks = [];
-        if (response.data && response.data.posts) {
-          mappedListTasks = this.mapListTasks(response.data.posts)
+        if (response.data && response.data.data) {
+          mappedListTasks = this.mapListTasks(response.data.data);
         }
+        console.log(mappedListTasks);
         this.setState({
           listTasks: mappedListTasks,
           isLoading: false
-        })
+        });
       })
       .catch(error => {
         this.setState({
           isLoading: false
-        })
-      })
-  }
+        });
+      });
+  };
 
-  mapListTasks = (data) => {
-    return data
-  }
+  mapListTasks = data => {
+    const mappedData = data.map(item => {
+      return { content: item[0] || "" };
+    });
+    return mappedData;
+  };
 
   googleSheetLogin = async () => {
     const response = await Google.logInAsync({
-      iosClientId: `1072011383365-1t23c52mpgnkbcvd3p4e4so5bf88lnqu.apps.googleusercontent.com`,
+      iosClientId: `1072011383365-1t23c52mpgnkbcvd3p4e4so5bf88lnqu.apps.googleusercontent.com`
       // androidClientId: `<YOUR_ANDROID_CLIENT_ID_FOR_EXPO>`,
       // iosStandaloneAppClientId: `<YOUR_IOS_CLIENT_ID>`,
       // androidStandaloneAppClientId: `<YOUR_ANDROID_CLIENT_ID>`,
     });
     console.log(98, response);
-    
+
     // if (type === 'success') {
     //   /* `accessToken` is now valid and can be used to get data from the Google API with HTTP requests */
     //   console.log(user);
     // }
-  }
+  };
 
   getPermissionAsync = async () => {
     if (Constants.platform.ios) {
@@ -165,18 +169,17 @@ export default class Task extends React.Component {
     }
   };
 
-  handleDoneTask = (id) => {
+  handleDoneTask = id => {
     if (!id) return;
     const tempListTasks = this.state.listTasks;
     const index = tempListTasks.findIndex(item => item.id === id);
-    tempListTasks.splice(index, 1)
+    tempListTasks.splice(index, 1);
     this.setState({
-      listTasks: tempListTasks,
-    })
-  }
+      listTasks: tempListTasks
+    });
+  };
 
   render() {
-  
     const { listTasks, image, listImages, isLoading } = this.state;
     if (isLoading) {
       return (
@@ -184,7 +187,7 @@ export default class Task extends React.Component {
           <ActivityIndicator size="large" color="#0000ff" />
           <ActivityIndicator size="small" color="#00ff00" />
         </View>
-      )
+      );
     }
     return (
       // <ScrollView>
@@ -201,41 +204,47 @@ export default class Task extends React.Component {
       <ScrollView style={{ marginTop: 30, width: "100%" }}>
         {listTasks.map((item, index) => {
           return (
-            <TaskItemComponent data={item} handleDoneTask={this.handleDoneTask}/>
+            <TaskItemComponent
+              data={item}
+              handleDoneTask={this.handleDoneTask}
+            />
           );
         })}
         <TouchableOpacity onPress={() => this.openPhotos()}>
           <Text>Open photos</Text>
         </TouchableOpacity>
-        <View style={{marginTop: 22}}>
-        <Modal
-          animationType="slide"
-          transparent={false}
-          visible={this.state.modalVisible}
-          onRequestClose={() => {
-            Alert.alert('Modal has been closed.');
-          }}>
-          <View style={{marginTop: 22}}>
-            <View>
-              <Text>Hello World!</Text>
+        <View style={{ marginTop: 22 }}>
+          <Modal
+            animationType="slide"
+            transparent={false}
+            visible={this.state.modalVisible}
+            onRequestClose={() => {
+              Alert.alert("Modal has been closed.");
+            }}
+          >
+            <View style={{ marginTop: 22 }}>
+              <View>
+                <Text>Hello World!</Text>
 
-              <TouchableHighlight
-                onPress={() => {
-                  this.setModalVisible(!this.state.modalVisible);
-                }}>
-                <Text>Hide Modal</Text>
-              </TouchableHighlight>
+                <TouchableHighlight
+                  onPress={() => {
+                    this.setModalVisible(!this.state.modalVisible);
+                  }}
+                >
+                  <Text>Hide Modal</Text>
+                </TouchableHighlight>
+              </View>
             </View>
-          </View>
-        </Modal>
+          </Modal>
 
-        <TouchableHighlight
-          onPress={() => {
-            this.setModalVisible(true);
-          }}>
-          <Text>Show Modal</Text>
-        </TouchableHighlight>
-      </View>
+          <TouchableHighlight
+            onPress={() => {
+              this.setModalVisible(true);
+            }}
+          >
+            <Text>Show Modal</Text>
+          </TouchableHighlight>
+        </View>
       </ScrollView>
       // <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
       //   <Button
@@ -253,11 +262,11 @@ export default class Task extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center"
   },
   horizontal: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-  },
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 10
+  }
 });
